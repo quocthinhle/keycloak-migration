@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.m2 \
     && mvn versions:set -DnewVersion=$KEYCLOAK_VERSION.$PROVIDERS_VERSION -Dkeycloak.version=$KEYCLOAK_VERSION \
     && mvn clean package -Dkeycloak.version=$KEYCLOAK_VERSION
 
-FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS e2e_test
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS keycloak
 
 ARG KEYCLOAK_VERSION
 ARG PROVIDERS_VERSION

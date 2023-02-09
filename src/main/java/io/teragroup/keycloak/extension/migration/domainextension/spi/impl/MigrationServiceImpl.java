@@ -33,13 +33,12 @@ public class MigrationServiceImpl implements MigrationService {
 
     @Override
     public MigrationRepresentation getMigration() {
-        List<Migration> migrationEntities = getEntityManager().createNamedQuery("listOne", Migration.class)
-                .getResultList();
-
-        for (Migration entity : migrationEntities) {
-            return new MigrationRepresentation(entity);
+        List<Migration> entities = getEntityManager().createNamedQuery("list", Migration.class)
+                .setMaxResults(1).getResultList();
+        if (entities.size() <= 0) {
+            return null;
         }
-        return null;
+        return new MigrationRepresentation(entities.get(0));
     }
 
     @Override
@@ -51,7 +50,7 @@ public class MigrationServiceImpl implements MigrationService {
 
             Class<?> c = Migration.class;
             Table table = c.getAnnotation(Table.class);
-            em.createNativeQuery("TRUNCATE " + table.name()).executeUpdate();
+            em.createNativeQuery("TRUNCATE TABLE " + table.name()).executeUpdate();
 
             Migration migrationEntity = new Migration();
             migrationEntity.setVersion(migration.getVersion());
@@ -59,8 +58,9 @@ public class MigrationServiceImpl implements MigrationService {
             em.persist(migrationEntity);
 
             em.getTransaction().commit();
-        } catch (Exception e) {
+        } catch (Exception err) {
             em.getTransaction().rollback();
+            throw err;
         }
 
         return migration;

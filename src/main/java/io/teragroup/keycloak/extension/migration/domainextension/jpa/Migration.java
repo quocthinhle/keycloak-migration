@@ -12,7 +12,7 @@ import javax.persistence.NamedQuery;
 @Entity
 @Table(name = "MIGRATION")
 @NamedQueries({
-        @NamedQuery(name = "listOne", query = "select m from Migration m limit 1"),
+        @NamedQuery(name = "list", query = "select m from Migration m"),
 })
 public class Migration {
 

@@ -1,0 +1,27 @@
+---
+version: "3.4"
+services:
+  keycloak:
+    build:
+      context: .
+      target: keycloak
+    command: start-dev
+    ports:
+      - 9292:8080
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_DB=dev-mem
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8080/realms/master"
+        ]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+      start_period: 10s

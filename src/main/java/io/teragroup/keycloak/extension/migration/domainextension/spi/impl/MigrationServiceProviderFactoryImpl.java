@@ -30,7 +30,7 @@ public class MigrationServiceProviderFactoryImpl implements MigrationServiceProv
 
     @Override
     public String getId() {
-        return "migrationServiceImpl";
+        return "tera-migration-service-impl";
     }
 
 }

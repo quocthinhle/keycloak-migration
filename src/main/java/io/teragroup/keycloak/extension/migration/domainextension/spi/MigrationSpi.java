@@ -13,7 +13,7 @@ public class MigrationSpi implements Spi {
 
     @Override
     public String getName() {
-        return "migration";
+        return "tera-migration";
     }
 
     @Override

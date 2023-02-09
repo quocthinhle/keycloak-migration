@@ -8,7 +8,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 
 public class MigrationJpaEntityProviderFactory implements JpaEntityProviderFactory {
 
-    protected static final String ID = "migration-entity-provider";
+    protected static final String ID = "tera-migration-entity-provider";
 
     @Override
     public JpaEntityProvider create(KeycloakSession session) {
