@@ -71,28 +71,23 @@ describe("Manager", () => {
       requestArgOptions: { catchNotFound: false }
     });
 
-    console.log("creating user in test-realm");
-    const user = await kcClient.users.create(
-      {
-        realm,
-        firstName: "John",
-        lastName: "Doe",
-        username: "johnd",
-        email: "john.d@domain.com",
-        emailVerified: true,
-        enabled: true
-      },
-      { catchNotFound: false }
-    );
+    const migrationClient = await kcClient.clients.create({
+      id: "keycloak-migration",
+      name: "keycloak-migration",
+      enabled: true,
+      standardFlowEnabled: true,
+      directAccessGrantsEnabled: true,
+      bearerOnly: false,
+      serviceAccountsEnabled: true,
+      authorizationServicesEnabled: true,
+      publicClient: false,
+      clientAuthenticatorType: "client-secret",
+      secret: "my-secret"
+    });
 
-    await kcClient.users.resetPassword(
-      {
-        realm,
-        id: user.id,
-        credential: { type: "password", value: "my-password", temporary: false }
-      },
-      { catchNotFound: false }
-    );
+    const serviceAccount = await kcClient.clients.getServiceAccountUser({
+      id: migrationClient.id
+    });
 
     console.log("finding client realm-management");
     const clients = await kcClient.clients.find(
@@ -114,11 +109,11 @@ describe("Manager", () => {
       { catchNotFound: false }
     );
 
-    console.log("assign role realm-admin to user");
+    console.log("assign role realm-admin to service account");
     await kcClient.users.addClientRoleMappings(
       {
         realm,
-        id: user.id,
+        id: serviceAccount.id as string,
         clientUniqueId: realmManagementClient.id as string,
         roles: [
           {
@@ -130,23 +125,6 @@ describe("Manager", () => {
       { catchNotFound: false }
     );
 
-    const testClient = await kcClient.clients.create({
-      id: "test-client",
-      name: "test-client",
-      enabled: true,
-      directAccessGrantsEnabled: true,
-      standardFlowEnabled: true,
-      publicClient: true,
-      fullScopeAllowed: true,
-      defaultClientScopes: ["web-origins", "acr", "profile", "roles", "email"],
-      optionalClientScopes: [
-        "address",
-        "phone",
-        "offline_access",
-        "microprofile-jwt"
-      ]
-    });
-
     console.log("login with the new user");
     const axiosInst = axios.create();
     axiosInst.interceptors.response.use(logResponse, logErrorResponse);
@@ -156,12 +134,12 @@ describe("Manager", () => {
     const tokenResp = await axiosInst.post(
       discoveryResp.data.token_endpoint,
       querystring.stringify({
-        grant_type: "password",
-        client_id: "test-client",
-        username: "johnd",
-        password: "my-password"
+        grant_type: "client_credentials",
+        client_id: "keycloak-migration",
+        client_secret: "my-secret"
       })
     );
+    console.log(tokenResp.data);
 
     manager = Manager.create(
       kcURL,

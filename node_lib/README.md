@@ -1,34 +1,127 @@
-[![Build Status](https://travis-ci.org/{{github-user-name}}/{{github-app-name}}.svg?branch=master)](https://travis-ci.org/{{github-user-name}}/{{github-app-name}}.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/{{github-user-name}}/{{github-app-name}}/badge.svg?branch=master)](https://coveralls.io/github/{{github-user-name}}/{{github-app-name}}?branch=master)
-[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+# Keycloak Migration
 
-# Using this module in other modules
+Everyone starts out configuring Keycloak using the admin console. However, for
+maintainability, any changes to Keycloak config should eventually be made via
+migration scripts (possibly written with
+[keycloak-admin-client](https://github.com/keycloak/keycloak-nodejs-admin-client))
+persisted in a Git repo. This extension adds a REST API to Keycloak that allows
+persisting migration progress.
 
-Here is a quick example of how this module can be used in other modules. The [TypeScript Module Resolution Logic](https://www.typescriptlang.org/docs/handbook/module-resolution.html) makes it quite easy. The file `src/index.ts` is a [barrel](https://basarat.gitbooks.io/typescript/content/docs/tips/barrel.html) that re-exports selected exports from other files. The _package.json_ file contains `main` attribute that points to the generated `lib/index.js` file and `typings` attribute that points to the generated `lib/index.d.ts` file.
+This Java extension and the JavaScript library `keycloak-migration` act as a duo
+to enable this use case.
 
-> If you are planning to have code in multiple files (which is quite natural for a NodeJS module) that users can import, make sure you update `src/index.ts` file appropriately.
+## Installation
 
-Now assuming you have published this amazing module to _npm_ with the name `my-amazing-lib`, and installed it in the module in which you need it -
+1. Download the Java extension from Maven, then install as an extension to
+   Keycloak
 
-- To use the `Greeter` class in a TypeScript file -
+   ```bash
+   mvn dependency:get -Dartifact=io.teragroup.keycloak.extension:migration:19.0.3.1
+   cp ~/.m2/repository/io/teragroup/keycloak/extension/migration/19.0.3.1/migration-19.0.3.1.jar ${KEYCLOAK_HOME_DIR}/providers
+   ${KEYCLOAK_HOME_DIR}/bin/kc.sh build
+   ```
 
-```ts
-import { Greeter } from "my-amazing-lib";
+2. Install the JavaScript library
 
-const greeter = new Greeter("World!");
-greeter.greet();
-```
+   ```bash
+   npm install keycloak-migration axios @keycloak/keycloak-admin-client
+   ```
 
-- To use the `Greeter` class in a JavaScript file -
+## Usage
 
-```js
-const Greeter = require('my-amazing-lib').Greeter;
+1. Create a new realm if you haven't already, this won't work on master realm
+2. On said realm, create a confidential client named "keycloak-migration" with
+   "service account" enabled
+3. Assign role "realm-admin" from client "realm-management" to
+   `keycloak-migration`'s service account
+4. Create one or more migration scripts:
 
-const greeter = new Greeter('World!');
-greeter.greet();
-```
+   ```ts
+   // migrations/001_create_realm.ts
+   import KcAdminClient from "@keycloak/keycloak-admin-client";
 
-## Setting travis and coveralls badges
-1. Sign in to [travis](https://travis-ci.org/) and activate the build for your project.
-2. Sign in to [coveralls](https://coveralls.io/) and activate the build for your project.
-3. Replace {{github-user-name}}/{{github-app-name}} with your repo details like: "ospatil/generator-node-typescript".
+   export default (kcAdminClient: KcAdminClient) => async () => {
+     await kcAdminClient.realms.create({
+       realm: "my-realm",
+       userManagedAccessAllowed: true
+     });
+   };
+   ```
+
+5. Create the entry point:
+
+   ```ts
+   // migrate.ts
+   import querystring from "querystring";
+   import axios from "axios";
+   import KcAdminClient from "@keycloak/keycloak-admin-client";
+
+   import apply_001 from "./migrations/001_create_realm";
+   import apply_002 from "./migrations/002_abc";
+   import apply_003 from "./migrations/003_xyz";
+
+   const keycloakURL = process.env.KEYCLOAK_URL;
+
+   // this realm must not be master realm and must contains client "keycloak-migration"
+   const realm = process.env.REALM;
+
+   // this is the client secret of client "keycloak-migration"
+   const clientSecret = process.env.CLIENT_SECRET;
+
+   // keycloak admin credentials
+   const adminUsername = process.env.ADMIN_USERNAME;
+   const adminPassword = process.env.ADMIN_PASSWORD;
+
+   // invoke this function to start applying migrations
+   export default async () => {
+     // acquire an access token using client credentials
+     const axiosInst = axios.create();
+     const discoveryResp = await axiosInst.get(
+       `${keycloakURL}/realms/${realm}/.well-known/uma2-configuration`
+     );
+     const tokenResp = await axiosInst.post(
+       discoveryResp.data.token_endpoint,
+       querystring.stringify({
+         grant_type: "client_credentials",
+         client_id: "keycloak-migration",
+         client_secret: clientSecret
+       })
+     );
+
+     // create the migration manager
+     const manager = Manager.create(
+       kcURL,
+       realm,
+       tokenResp.data.access_token as string
+     );
+
+     // create keycloak admin client
+     const kcAdminClient = new KcAdminClient({
+       baseUrl: keycloakURL,
+       realmName: "master"
+     });
+
+     // authenticate keycloak admin client
+     await kcAdminClient.auth({
+       grantType: "password",
+       username: adminUsername,
+       password: adminPassword,
+       clientId: "admin-cli"
+     });
+
+     // apply migrations. Note that migration version is 1-based. If these
+     // migrations all succeed then the final migration version will be 3.
+     const results = await manager.apply(
+       apply_001(kcAdminClient),
+       apply_002(kcAdminClient),
+       apply_003(kcAdminClient)
+     );
+   };
+   ```
+
+## Dealing with migration errors
+
+If one of the migration steps rejects then the migration will be marked as
+dirty. Migrations will not proceed automatically in this state. You need to fix
+what is wrong with Keycloak and then call `manager.forceVersion(newVersion)`
+manually.
