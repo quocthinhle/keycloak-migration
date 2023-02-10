@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
 
 interface Migration {
   version: number;
@@ -15,13 +15,12 @@ export class Client {
 
   constructor(
     kcURL: string,
-    realm: string,
     accessToken: string,
     interceptors?: ResponseInterceptor[]
   ) {
     this.axios = axios.create({
-      baseURL: `${kcURL}/realms/${realm}/tera-migration`,
-      headers: { Authorization: `Bearer ${accessToken}` },
+      baseURL: `${kcURL}/realms/master/tera-migration`,
+      headers: { Authorization: `Bearer ${accessToken}` }
     });
     if (interceptors) {
       for (let [onFulfilled, onRejected] of interceptors) {
@@ -35,9 +34,9 @@ export class Client {
       Migration,
       AxiosResponse<Migration, Migration>,
       Migration
-    >('', {
+    >("", {
       version,
-      dirty,
+      dirty
     });
     return resp.data;
   }
@@ -47,10 +46,10 @@ export class Client {
       Migration | null,
       AxiosResponse<Migration | null, null>,
       null
-    >('');
+    >("");
     return {
       version: resp.data ? resp.data.version : 0,
-      dirty: resp.data ? resp.data.dirty : false,
+      dirty: resp.data ? resp.data.dirty : false
     };
   }
 }

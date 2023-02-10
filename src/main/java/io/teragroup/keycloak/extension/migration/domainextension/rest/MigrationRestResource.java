@@ -1,6 +1,7 @@
 package io.teragroup.keycloak.extension.migration.domainextension.rest;
 
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.services.managers.AppAuthManager;
 import org.keycloak.services.managers.AuthenticationManager;
 
@@ -12,6 +13,7 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,7 +35,8 @@ public class MigrationRestResource {
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
     public MigrationRepresentation getMigration() {
-        checkRealmAdmin();
+        validateRealm();
+        checkAccess();
         return session.getProvider(MigrationService.class).getMigration();
     }
 
@@ -43,20 +46,29 @@ public class MigrationRestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public MigrationRepresentation createWebhook(MigrationRepresentation rep) {
-        checkRealmAdmin();
+        validateRealm();
+        checkAccess();
         return session.getProvider(MigrationService.class).setMigration(rep);
     }
 
+    private void validateRealm() {
+        RealmModel realm = session.getContext().getRealm();
+        if (realm.getId() == "master") {
+            throw new NotFoundException("Only available in master realm");
+        }
+    }
+
     /**
-     * checkRealmAdmin ensures that only users with "realm-management.realm-admin"
+     * checkRealmAdmin ensures that only users with
+     * "keycloak-migration.uma_protection"
      * role can access this resource
      */
-    private void checkRealmAdmin() {
+    private void checkAccess() {
         if (auth == null) {
             throw new NotAuthorizedException("Bearer");
         } else if (auth.getToken().getRealmAccess() == null
-                || !auth.getToken().getResourceAccess().get("realm-management").isUserInRole("realm-admin")) {
-            throw new ForbiddenException("Does not have realm-management.realm-admin role");
+                || !auth.getToken().getResourceAccess().get("keycloak-migration").isUserInRole("uma_protection")) {
+            throw new ForbiddenException("Does not have keycloak-migration.uma_protection role");
         }
     }
 

@@ -29,12 +29,9 @@ to enable this use case.
 
 ## Usage
 
-1. Create a new realm if you haven't already, this won't work on master realm
-2. On said realm, create a confidential client named "keycloak-migration" with
-   "service account" enabled
-3. Assign role "realm-admin" from client "realm-management" to
-   `keycloak-migration`'s service account
-4. Create one or more migration scripts:
+1. In realm master, create a confidential client named "keycloak-migration" with
+   "authorization service" enabled. Note this client's secret.
+2. Create one or more migration scripts:
 
    ```ts
    // migrations/001_create_realm.ts
@@ -48,7 +45,7 @@ to enable this use case.
    };
    ```
 
-5. Create the entry point:
+3. Create the entry point:
 
    ```ts
    // migrate.ts
@@ -62,9 +59,6 @@ to enable this use case.
    import apply_003 from "./migrations/003_xyz";
 
    const keycloakURL = process.env.KEYCLOAK_URL;
-
-   // this realm must not be master realm and must contains client "keycloak-migration"
-   const realm = process.env.REALM;
 
    // this is the client secret of client "keycloak-migration"
    const clientSecret = process.env.CLIENT_SECRET;
@@ -92,7 +86,6 @@ to enable this use case.
      // create the migration manager
      const manager = Manager.create(
        kcURL,
-       realm,
        tokenResp.data.access_token as string
      );
 

@@ -1,4 +1,4 @@
-import { Client, ResponseInterceptor } from './client.js';
+import { Client, ResponseInterceptor } from "./client.js";
 
 export class Manager {
   private client: Client;
@@ -9,11 +9,10 @@ export class Manager {
 
   public static create(
     kcURL: string,
-    realm: string,
     accessToken: string,
     interceptors?: ResponseInterceptor[]
   ): Manager {
-    return new Manager(new Client(kcURL, realm, accessToken, interceptors));
+    return new Manager(new Client(kcURL, accessToken, interceptors));
   }
 
   public async apply(...migrations: Array<() => Promise<any>>) {
@@ -45,7 +44,7 @@ export class Manager {
       const migration = await this.client.setVersion(finalVersion, false);
       console.log(`arrived at migration #${migration.version}`);
     } else {
-      console.log('no new migration');
+      console.log("no new migration");
     }
     return result;
   }
