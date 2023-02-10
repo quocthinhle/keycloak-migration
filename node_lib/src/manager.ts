@@ -1,24 +1,43 @@
 import { Client, ResponseInterceptor } from "./client.js";
 
+export interface Logger {
+  log: (message: string) => void;
+  error: (message: string) => void;
+}
+
+export interface ManagerOptions {
+  interceptors?: ResponseInterceptor[];
+  logger?: Logger;
+}
+
 export class Manager {
   private client: Client;
+  private logger: Logger;
 
-  constructor(client: Client) {
+  constructor(client: Client, logger?: Logger) {
     this.client = client;
+    if (logger) {
+      this.logger = logger;
+    } else {
+      this.logger = console;
+    }
   }
 
   public static create(
     kcURL: string,
     accessToken: string,
-    interceptors?: ResponseInterceptor[]
+    options?: ManagerOptions
   ): Manager {
-    return new Manager(new Client(kcURL, accessToken, interceptors));
+    return new Manager(
+      new Client(kcURL, accessToken, options?.interceptors),
+      options?.logger
+    );
   }
 
   public async apply(...migrations: Array<() => Promise<any>>) {
     const result = [];
     const { version, dirty } = await this.client.getVersion();
-    console.log(`migrating from migration #${version}`);
+    this.logger.log(`migrating from migration #${version}`);
     if (dirty) {
       throw new Error(
         `current migration is dirty. Apply corrective actions and set migration version manually with manager.forceVersion(newVersion)`
@@ -34,7 +53,7 @@ export class Manager {
       const migrate = migrations[ordinal - 1];
       try {
         result.push(await migrate());
-        console.log(`migration #${version} succeed`);
+        this.logger.log(`migration #${version} succeed`);
       } catch (err) {
         await this.markDirty(finalVersion);
         throw err;
@@ -42,9 +61,9 @@ export class Manager {
     }
     if (finalVersion > version) {
       const migration = await this.client.setVersion(finalVersion, false);
-      console.log(`arrived at migration #${migration.version}`);
+      this.logger.log(`arrived at migration #${migration.version}`);
     } else {
-      console.log("no new migration");
+      this.logger.log("no new migration");
     }
     return result;
   }
@@ -59,8 +78,8 @@ export class Manager {
 
   private async markDirty(version: number) {
     await this.client.setVersion(version, true);
-    console.error(
-      `migration #${version} failed. Migration is marked as dirty.`
+    this.logger.error(
+      `migration failed. Migration #${version} is marked as dirty. Apply corrective actions and set migration version manually with manager.forceVersion(newVersion)`
     );
   }
 }

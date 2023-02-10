@@ -89,9 +89,9 @@ describe("Manager", () => {
       })
     );
 
-    manager = Manager.create(kcURL, tokenResp.data.access_token as string, [
-      [logResponse, logErrorResponse]
-    ]);
+    manager = Manager.create(kcURL, tokenResp.data.access_token as string, {
+      interceptors: [[logResponse, logErrorResponse]]
+    });
 
     await kcClient.realms.create({
       realm,
