@@ -1,14 +1,13 @@
 {
-  "name": "keycloak-migration",
-  "version": "0.0.0",
+  "name": "@teravn/keycloak-migration",
+  "version": "19.0.0",
   "description": "Manage Keycloak migration",
-  "license": "apache-2.0",
-  "repository": "",
-  "author": {
-    "name": "Khoi Pham",
-    "email": "pckhoi@gmail.com",
-    "url": "https://github.com/pckhoi"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tera-Group/keycloak-migration.git"
   },
+  "author": "Khoi Pham <pckhoi@gmail.com> (https://github.com/pckhoi)",
   "type": "module",
   "keywords": [
     "keycloak",
@@ -53,5 +52,9 @@
   },
   "engines": {
     "node": ">=10.0.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Tera-Group/keycloak-migration/issues"
+  },
+  "homepage": "https://github.com/Tera-Group/keycloak-migration#readme"
 }

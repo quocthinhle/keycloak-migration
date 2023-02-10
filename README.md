@@ -24,7 +24,7 @@ to enable this use case.
 2. Install the JavaScript library
 
    ```bash
-   npm install keycloak-migration axios @keycloak/keycloak-admin-client
+   npm install @teravn/keycloak-migration axios @keycloak/keycloak-admin-client
    ```
 
 ## Usage
@@ -55,6 +55,7 @@ to enable this use case.
    import querystring from "querystring";
    import axios from "axios";
    import KcAdminClient from "@keycloak/keycloak-admin-client";
+   import { Manager } from "@teravn/keycloak-migration";
 
    import apply_001 from "./migrations/001_create_realm";
    import apply_002 from "./migrations/002_abc";

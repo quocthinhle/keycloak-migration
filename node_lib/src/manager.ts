@@ -1,4 +1,4 @@
-import { Client, ResponseInterceptor } from "./client.js";
+import { Client, ResponseInterceptor } from './client.js';
 
 export class Manager {
   private client: Client;
@@ -45,7 +45,7 @@ export class Manager {
       const migration = await this.client.setVersion(finalVersion, false);
       console.log(`arrived at migration #${migration.version}`);
     } else {
-      console.log("no new migration");
+      console.log('no new migration');
     }
     return result;
   }
