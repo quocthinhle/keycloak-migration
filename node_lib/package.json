@@ -1,6 +1,6 @@
 {
   "name": "@teravn/keycloak-migration",
-  "version": "19.0.3",
+  "version": "19.0.4",
   "description": "Manage Keycloak migration",
   "license": "Apache-2.0",
   "repository": {
@@ -16,13 +16,20 @@
   "files": [
     "lib"
   ],
-  "main": "lib/index",
-  "types": "lib/index",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/esm/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib && rimraf coverage",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && echo Using TypeScript && tsc --version",
-    "build": "tsc --pretty",
+    "build": "tsc --pretty && tsc -p tsconfig.esm.json --pretty",
     "du": "docker-compose -f ../docker-compose.yml up --wait",
     "dd": "docker-compose -f ../docker-compose.yml down",
     "test": "npm run dd && npm run du && node --experimental-vm-modules node_modules/jest/bin/jest.js && npm run dd",

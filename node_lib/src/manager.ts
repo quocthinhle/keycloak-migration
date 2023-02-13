@@ -53,7 +53,7 @@ export class Manager {
       const migrate = migrations[ordinal - 1];
       try {
         result.push(await migrate());
-        this.logger.log(`migration #${version} succeed`);
+        this.logger.log(`migration #${finalVersion} succeed`);
       } catch (err) {
         await this.markDirty(finalVersion);
         throw err;
