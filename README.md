@@ -16,8 +16,8 @@ to enable this use case.
    Keycloak
 
    ```bash
-   mvn dependency:get -Dartifact=io.teragroup.keycloak.extension:migration:19.0.3.1
-   cp ~/.m2/repository/io/teragroup/keycloak/extension/migration/19.0.3.1/migration-19.0.3.1.jar ${KEYCLOAK_HOME_DIR}/providers
+   mvn dependency:get -Dartifact=io.teragroup.keycloak.extension:migration:20.0.3.1
+   cp ~/.m2/repository/io/teragroup/keycloak/extension/migration/20.0.3.1/migration-20.0.3.1.jar ${KEYCLOAK_HOME_DIR}/providers
    ${KEYCLOAK_HOME_DIR}/bin/kc.sh build
    ```
 

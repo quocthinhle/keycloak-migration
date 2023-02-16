@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG KEYCLOAK_VERSION=19.0.3
+ARG KEYCLOAK_VERSION=20.0.3
 ARG PROVIDERS_VERSION=2
 
 FROM maven:3.6.0-jdk-11-slim AS providers
