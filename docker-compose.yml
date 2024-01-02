@@ -5,7 +5,7 @@ services:
     build:
       context: .
       target: keycloak
-    command: start-dev
+    command: ["start-dev"]
     ports:
       - 9292:8080
     environment:
@@ -21,7 +21,7 @@ services:
           "-f",
           "http://localhost:8080/realms/master"
         ]
-      interval: 2s
+      interval: 5s
       timeout: 10s
       retries: 20
       start_period: 10s

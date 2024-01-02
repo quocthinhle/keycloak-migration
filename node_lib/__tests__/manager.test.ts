@@ -1,8 +1,9 @@
-import { beforeAll, describe, expect, it } from "@jest/globals";
+import { beforeAll, describe, expect, it, test } from "@jest/globals";
 import { KeycloakAdminClient } from "@keycloak/keycloak-admin-client/lib/client.js";
 import ClientRepresentation from "@keycloak/keycloak-admin-client/lib/defs/clientRepresentation.js";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import querystring from "querystring";
+import * as testcontainers from 'testcontainers';
 
 import { Manager } from "../src/index.js";
 
@@ -44,13 +45,30 @@ async function expectReject(prom: Promise<any>) {
 }
 
 describe("Manager", () => {
-  const kcURL = "http://localhost:9292";
   const realm = "test-realm";
 
   let manager: Manager;
+  let kcURL: string;
+  let kcHost: string;
+  let kcPort: number;
   let kcClient: KeycloakAdminClient;
+  let keycloakContainer: testcontainers.StartedTestContainer;
 
   beforeAll(async () => {
+    keycloakContainer = await new testcontainers.GenericContainer('kc_image:1')
+      .withExposedPorts(8080)
+      .withEnvironment({
+        KEYCLOAK_ADMIN: 'admin',
+        KEYCLOAK_ADMIN_PASSWORD: 'admin',
+        KC_DB: 'dev-mem',
+      })
+      .withCommand(["start-dev"])
+      .start();
+
+    kcHost = keycloakContainer.getHost();
+    kcPort = keycloakContainer.getMappedPort(8080);
+    kcURL = `http://${kcHost}:${kcPort}`;
+
     kcClient = new KeycloakAdminClient({
       baseUrl: kcURL,
       realmName: "master"
@@ -102,7 +120,7 @@ describe("Manager", () => {
       realmName: realm,
       requestArgOptions: { catchNotFound: false }
     });
-  });
+  }, 60 * 1 * 1000);
 
   it("should ensure migration is applied", async () => {
     console.log("check that no migration is set yet");

@@ -8,7 +8,7 @@
     <groupId>io.teragroup.keycloak.extension</groupId>
     <artifactId>migration</artifactId>
     <packaging>jar</packaging>
-    <version>20.0.3.2</version>
+    <version>22.0.0.1</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
@@ -37,9 +37,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <keycloak.version>20.0.3</keycloak.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <keycloak.version>22.0.0</keycloak.version>
         <maven-release-plugin.version>3.0.0-M6</maven-release-plugin.version>
     </properties>
 
@@ -144,12 +144,12 @@
             </plugins>
         </pluginManagement>
     </build>
-    <scm>
+    <!-- <scm>
         <connection>scm:git:git://github.com/Tera-Group/keycloak-migration.git</connection>
         <developerConnection>scm:git:ssh://github.com:Tera-Group/keycloak-migration.git</developerConnection>
         <url>http://github.com/Tera-Group/keycloak-migration</url>
         <tag>migration-20.0.3.1</tag>
-    </scm>
+    </scm> -->
     <profiles>
         <profile>
             <id>release</id>
