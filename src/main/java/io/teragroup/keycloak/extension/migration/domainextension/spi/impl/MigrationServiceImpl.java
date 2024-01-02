@@ -7,8 +7,8 @@ import io.teragroup.keycloak.extension.migration.domainextension.MigrationRepres
 import io.teragroup.keycloak.extension.migration.domainextension.jpa.Migration;
 import io.teragroup.keycloak.extension.migration.domainextension.spi.MigrationService;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Table;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Table;
 
 import java.util.List;
 
